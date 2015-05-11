@@ -29,7 +29,7 @@ http://jsfiddle.net/jugal/uhydP/ --- Pie percentage
 
 
 
-alter table pagerstats_app_source_data drop primary key, add primary key(source_date, description);
+alter table pagerstats_app_source_data drop primary key, add primary key(open_date, close_date);
 
 select service_name,count(open_date) AS count from pagerstats_app_source_data group by service_name order by 2 desc;
 
@@ -38,3 +38,10 @@ cursor = connection.cursor()
 cursor.execute("select service_name,count(open_date) AS count from pagerstats_app_source_data group by service_name order by 2 desc limit 5")
 total_rows = cursor.fetchall()
 [list(i) for i in total_rows]
+
+
+
+
+select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null group by group_date
+union
+select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null group by group_date order by 1;

@@ -1,6 +1,5 @@
 from django.http import HttpResponseRedirect 
-from django.shortcuts import render
-import datetime
+from django.shortcuts import render 
 from pagerstats_app.models import Source_data
 from django.db.models import Count
 from django.shortcuts import render 
@@ -12,31 +11,41 @@ from dateutil import tz
 import collections 
 from django.shortcuts import render
 from django.http import HttpResponse 
-import csv 
-from collections import Counter,OrderedDict 
+import csv   
 from django.http import HttpResponseRedirect
 from django.db import connection
 
 
 def getData(request): 
-        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(7)): 
+        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(20)): 
             fromdate = (i - datetime.timedelta(days=1))
-            #get_incidents(fromdate,i,'ICS')
+            get_incidents(fromdate,i,'ICS')
 
         #Weekly service data
         data_source_wk = [] 
         cursor = connection.cursor()
-        cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data group by group_date order by 1")
+        cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null group by group_date\
+						union\
+						select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null group by group_date order by 1")
         total_rows = cursor.fetchall()
         li=[list(i) for i in total_rows]
+        no_incident = []
         for i in li: 
             temp = {} 
             temp['group_date'] = i[0].strftime("%m-%d-%Y")
             temp['total'] = int(i[1]) 
             temp['drill'] = int(i[0].strftime("%m%d%Y"))
             data_source_wk.append(temp)
-        print data_source_wk
-
+            no_incident.append(i[0].strftime("%m-%d-%Y"))
+        
+        
+        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(20)): 
+            fromdate = (i - datetime.timedelta(days=1))
+            no_incident_date = str(fromdate.strftime("%m-%d-%Y"))
+            if no_incident_date not in no_incident:
+            	no_incident_date = format_date(fromdate)
+            	p=Source_data(source_date=no_incident_date,open_date=str(no_incident_date),close_date=no_incident_date,create_date=datetime.datetime.now(),group_date=no_incident_date)
+            	p.save() 
 
         #Daily service data[for Drilldown line chart]
         data_source_dly = [] 
@@ -118,6 +127,7 @@ def get_incidents(fromdate,todate,domain):
         utc_close = utc_close.replace(tzinfo=from_zone) 
         psttime_close = utc_close.astimezone(to_zone)  
         group_date = format_date(psttime_open)
+        #no_incident.append(group_date)
         
         try:
             if (cen > fr) and (cen < to ): 
@@ -142,6 +152,7 @@ def get_incidents(fromdate,todate,domain):
         #print str(key['created_on'])+"    "+str(psttime_open)+"    "+shift+"    "+service_name+"    "+description
         p=Source_data(source_date=utc,open_date=str(psttime_open),close_date=psttime_close,service_name=service_name,shift=shift,description=description,resolved_by=resolved_by,escalations=escalations,create_date=datetime.datetime.now(),group_date=group_date,domain=domain)
         p.save()
+
 
 
   
