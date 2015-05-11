@@ -1,0 +1,6 @@
+conf.py
+*.pyc
+<<<<<<< HEAD
+*logs*
+=======
+>>>>>>> Checked in pagerstats v1. Working drilldown 1

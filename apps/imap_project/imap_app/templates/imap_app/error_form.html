@@ -1,0 +1,88 @@
+{% load staticfiles %}
+
+<head>
+<div style="padding:0px;margin:1px;height:50px;background-color:rgb(26, 188, 156);margin:0 auto; border-radius:05px;width:80%;border-radius:10px;margin: 10px auto;border:1px solid black;">
+           <h1  style = "float: left;margin-left:10px;"align=center""></i><font size="5" color=white>iMap</font>
+            </h1>
+</div>
+<div style="width:80%;border-radius:10px;height:50px;margin: 10px auto;border:1px solid black;"> 
+ 
+
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="{% static 'css/myapp.css' %}">
+<link href='http://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+</head>
+
+<title>iMap</title>
+<form id="form" action="" method="get">
+    {% for i in form %}
+        <tr>
+            {% if i.auto_id == "id_filer"%}
+                &nbsp;&nbsp;<td>{{ i.label_tag }}</td>&nbsp;&nbsp;
+                <td>{{i}}</td>&nbsp;&nbsp;&nbsp;&nbsp;
+                {% endif%}
+                    {% if i.auto_id == "id_Type"%} 
+                    <td>{{ i.label_tag }}</td>
+                    {% for radio in form.Type %}
+                        <div style="display: inline-block;margin: 15px auto;margin-left: 10px">
+                            {{ radio }}
+                        </div>
+                    {% endfor %}
+                    {% endif%}
+
+
+
+        </tr>  
+
+                {% endfor %}
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input id="submitbtn" type="submit" value="Submit">
+    {% csrf_token %}
+
+    <script src="{% static "js/spin.min.js" %}" type="text/javascript"></script>
+    <script src="{% static "js/loadgif.js" %}" type="text/javascript"></script>
+
+                        
+</form>
+
+<body> 
+    <div id="loading">
+        <div id="loadingcontent">
+            <p id="loadingspinner"><br><br>
+                Please wait.. it may take few secs..
+            </p>
+        </div>
+    </div>
+
+
+    <div style="width:70%;border-radius:10px;height: auto;margin: 20px auto;align=center"> 
+        {% if error %}
+            <p style="color: red;">{{message}}</p>
+        {% endif %}
+    </div>
+
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

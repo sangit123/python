@@ -1,0 +1,16 @@
+<h3>HEre i am in QDC A PAge</h3>
+
+<br>
+<h2>Below are Ops Inventory data</h2>
+{% for i in rec_a_ops_output.items %}
+{{key}}{{value}}
+{%endfor%}
+<br>
+<br>
+<h2>Below are Storage Quickbase Data</h2>
+{% for key,value in rec_a_qb_output.items %}
+{{value}}{{key}}
+<br>
+{%endfor%}
+
+<br>

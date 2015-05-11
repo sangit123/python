@@ -1,0 +1,184 @@
+{% load staticfiles %}
+
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script> 
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/drilldown.js"></script>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="{% static 'css/myapp.css' %}">
+<link href='http://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>
+</head>
+
+
+<div style="padding:0px;margin:5px;height:50px;background-color:#F7D358;margin:0 auto; border-radius:05px;width:85%;border-radius:10px;margin: 10px auto;border:1px solid black;">
+           <h1  style = "float: left;margin-left:10px;"align=center""></i><font size="5" color=black>Pager Stats</font>
+            </h1>
+</div>
+<div style="width:85%;border-radius:6px;height:auto;margin: 10px auto;border:1px solid black;"> 
+    
+    <div>
+        <div style="margin-left: 0px; width:45%;display: inline-block;" >
+            <div id="line"></div>
+        </div>
+
+        <div style="margin-left: 0px; width:40%;display: inline-block;"align="center" "vertical-align: middle;" >
+            <div id="pie"></div>
+        </div>
+    </div> 
+
+</div>
+
+
+<div id="line"></div>
+<div id="pie"></div>
+<script>
+    var data_source_wk = {{ data_source_wk|safe }}
+    var service_count_wk_pie = {{ service_count_wk_pie|safe }}
+    var data_source_dly = {{ data_source_dly|safe }}
+</script>
+
+
+<script type="text/javascript">
+
+
+$(function () {    
+
+    // Create the chart
+    $('#line').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Weekly Stats'
+        },
+        subtitle: {
+                    text: 'Click the columns to view detail stats'
+                },
+        xAxis: {
+            type: 'category'
+        },
+        yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Total Incidents'
+                    }
+                },
+        legend: {
+            enabled: true
+        },
+
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                }
+            }
+        },
+        series: [{
+        name: 'Incidents',
+        colorByPoint: true,
+        data: [ {% for i in data_source_wk %}
+                  { 
+                    name: '{{i.group_date}}',
+                    y:  {{ i.total }},  
+                    drilldown: {{ i.drill }}
+                  },
+                {% endfor %}
+               ]
+    }], 
+    drilldown: {
+        series: [ {% for i in data_source_wk %}
+                  {
+                  id: {{ i.drill }},
+                  name: 'Incidents/Service',
+                  data: [
+                        {% for j in data_source_dly %}
+                            {% ifequal i.drill j.drill  %}
+                                {
+                                    name:"{{ j.service_name }}",
+                                    y: {{ j.total }}
+                                },
+                            {%endifequal%}
+                        {%endfor%}
+                       ]
+                  },
+                  {%endfor%}
+
+                ]
+                 }
+
+
+
+    })
+});
+
+
+
+
+</script>
+
+
+<script type="text/javascript">
+
+
+$(function () {    
+
+    // Create the chart
+    $('#pie').highcharts({
+        chart: {
+            type: 'pie'
+        },
+        title: {
+            text: 'Service Stats'
+        },
+        subtitle: {
+                    text: 'Total nmber of incidents/service'
+                },
+        xAxis: {
+            type: 'category'
+        },
+        yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Total Incidents'
+                    }
+                },
+        legend: {
+            enabled: true
+        },
+
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                    formatter: function() {
+                        return Math.round(this.percentage*100)/100 + ' %';
+                    },
+                    distance: -30,
+                    color:'white'
+                }
+            }
+        },
+        series: [{
+        name: 'Incidents/Service',
+        colorByPoint: true,
+        data: [ {% for i in service_count_wk_pie %}
+                  { 
+                    name: '{{i.service_name}}',
+                    y:  {{ i.count }} 
+                  },
+                {% endfor %}
+               ]
+    }]
+
+    })
+});
+
+
+
+
+</script>
+

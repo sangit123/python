@@ -1,0 +1,11 @@
+select source_date,str_to_Date(open_Date,'%Y-%m-%d')dd,shift from pagerstats_app_source_data;
+
+
+
+select str_to_Date(open_Date,'%Y-%m-%d')dd,count(open_date)opendate from pagerstats_app_source_data group by str_to_Date(open_Date,'%Y-%m-%d');
+select str_to_Date(open_Date,'%Y-%m-%d')dd,count(open_date)opendate from pagerstats_app_source_data group by str_to_Date(open_Date,'%Y-%m-%d') order by 1;
+
+
+==wrong data
+2015-04-21 |       76 |
+| 2015-04-22 |        3
