@@ -16,36 +16,50 @@ from django.http import HttpResponseRedirect
 from django.db import connection
 
 
-def getData(request): 
-        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(20)): 
+def getData(request,interval=7): 
+        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(interval)): 
             fromdate = (i - datetime.timedelta(days=1))
-            get_incidents(fromdate,i,'ICS')
+            #get_incidents(fromdate,i,'ICS')
 
-        #Weekly service data
-        data_source_wk = [] 
+        #To fill no incident data
+        todate = datetime.date.today() - datetime.timedelta(1)
+        fromdate = datetime.date.today() - datetime.timedelta(interval)
         cursor = connection.cursor()
-        cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null group by group_date\
+        cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date\
 						union\
-						select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null group by group_date order by 1")
+						select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date order by 1")
         total_rows = cursor.fetchall()
         li=[list(i) for i in total_rows]
         no_incident = []
         for i in li: 
-            temp = {} 
-            temp['group_date'] = i[0].strftime("%m-%d-%Y")
-            temp['total'] = int(i[1]) 
-            temp['drill'] = int(i[0].strftime("%m%d%Y"))
-            data_source_wk.append(temp)
             no_incident.append(i[0].strftime("%m-%d-%Y"))
         
-        
-        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(20)): 
+        #print no_incident
+        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(interval)): 
             fromdate = (i - datetime.timedelta(days=1))
             no_incident_date = str(fromdate.strftime("%m-%d-%Y"))
             if no_incident_date not in no_incident:
             	no_incident_date = format_date(fromdate)
             	p=Source_data(source_date=no_incident_date,open_date=str(no_incident_date),close_date=no_incident_date,create_date=datetime.datetime.now(),group_date=no_incident_date)
-            	p.save() 
+            	p.save()
+
+        #Weekly service data
+        data_source_wk = []
+        todate = datetime.date.today() - datetime.timedelta(1)
+        fromdate = datetime.date.today() - datetime.timedelta(interval)
+        cursor = connection.cursor()
+        cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date\
+						union\
+						select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date order by 1")
+        total_rows = cursor.fetchall()
+        li=[list(i) for i in total_rows]
+        for i in li: 
+            temp = {} 
+            temp['group_date'] = i[0].strftime("%m-%d-%Y")
+            temp['total'] = int(i[1]) 
+            temp['drill'] = int(i[0].strftime("%m%d%Y"))
+            data_source_wk.append(temp) 
+        
 
         #Daily service data[for Drilldown line chart]
         data_source_dly = [] 
@@ -66,7 +80,7 @@ def getData(request):
         #pie chart data
         service_count_wk_pie = [] 
         cursor = connection.cursor()
-        cursor.execute("select service_name,count(open_date) AS count from pagerstats_app_source_data group by service_name order by 2 desc limit 5")
+        cursor.execute("select service_name,count(open_date) AS count from pagerstats_app_source_data where group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"' group by service_name order by 2 desc limit 5")
         total_rows = cursor.fetchall()
         li=[list(i) for i in total_rows]
         for i in li: 

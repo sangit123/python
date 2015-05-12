@@ -40,8 +40,14 @@ total_rows = cursor.fetchall()
 [list(i) for i in total_rows]
 
 
-
+fromdate = datetime.date.today() - datetime.timedelta(1)
+todate = datetime.date.today() - datetime.timedelta(interval)
 
 select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null group by group_date
 union
 select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null group by group_date order by 1;
+
+
+select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date > '2015-05-02' and group_date < '2015-05-10') group by group_date
+union
+select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date > '2015-05-02' and group_date < '2015-05-10') group by group_date order by 1
