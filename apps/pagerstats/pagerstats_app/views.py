@@ -14,84 +14,120 @@ from django.http import HttpResponse
 import csv   
 from django.http import HttpResponseRedirect
 from django.db import connection
+from pagerstats_app.forms import PagerForm
 
 
-def getData(request,interval=7): 
-        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(interval)): 
-            fromdate = (i - datetime.timedelta(days=1))
-            #get_incidents(fromdate,i,'ICS')
-
-        #To fill no incident data
-        todate = datetime.date.today() - datetime.timedelta(1)
-        fromdate = datetime.date.today() - datetime.timedelta(interval)
-        cursor = connection.cursor()
-        cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date\
-						union\
-						select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date order by 1")
-        total_rows = cursor.fetchall()
-        li=[list(i) for i in total_rows]
-        no_incident = []
-        for i in li: 
-            no_incident.append(i[0].strftime("%m-%d-%Y"))
+def getData(request):
+    interval=15
+    error = False
+    if request.method == 'GET': 
         
-        #print no_incident
-        for i in (datetime.date.today() - datetime.timedelta(n) for n in range(interval)): 
-            fromdate = (i - datetime.timedelta(days=1))
-            no_incident_date = str(fromdate.strftime("%m-%d-%Y"))
-            if no_incident_date not in no_incident:
-            	no_incident_date = format_date(fromdate)
-            	p=Source_data(source_date=no_incident_date,open_date=str(no_incident_date),close_date=no_incident_date,create_date=datetime.datetime.now(),group_date=no_incident_date)
-            	p.save()
+        form = PagerForm(request.GET)
+        if form.is_valid(): 
+            var = form.cleaned_data
+            getShift = var['shift']
+            getDomain = var['domain']
+            #print getDomain
+            if getShift == 'idc':
+                shift = "'IDC'"
+            elif getShift == 'us':
+                shift = "'US'"
+            elif getShift == 'total':
+                shift = "'US','IDC'"
+            else:
+                shift = 'idc'
 
-        #Weekly service data
-        data_source_wk = []
-        todate = datetime.date.today() - datetime.timedelta(1)
-        fromdate = datetime.date.today() - datetime.timedelta(interval)
-        cursor = connection.cursor()
-        cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date\
-						union\
-						select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date order by 1")
-        total_rows = cursor.fetchall()
-        li=[list(i) for i in total_rows]
-        for i in li: 
-            temp = {} 
-            temp['group_date'] = i[0].strftime("%m-%d-%Y")
-            temp['total'] = int(i[1]) 
-            temp['drill'] = int(i[0].strftime("%m%d%Y"))
-            data_source_wk.append(temp) 
-        
-
-        #Daily service data[for Drilldown line chart]
-        data_source_dly = [] 
-        cursor = connection.cursor()
-        cursor.execute("select group_date,service_name,count(open_date)count from pagerstats_app_source_data group by group_date,service_name  order by 1")
-        total_rows = cursor.fetchall()
-        li=[list(i) for i in total_rows]
-        for i in li: 
-            temp = {} 
-            temp['group_date'] = i[0].strftime("%m-%d-%Y")
-            temp['service_name'] = str(i[1])
-            temp['total'] = i[2]
-            temp['drill'] = int(i[0].strftime("%m%d%Y"))
-            data_source_dly.append(temp)
-        #print data_source_dly
+            if getDomain == 'ics':
+                domain = "'ICS'"
+            elif getDomain == 'pcs':
+                domain = "'PCS'"
+            elif getDomain == 'mobile':
+                domain = "'MOBILE'"
 
 
-        #pie chart data
-        service_count_wk_pie = [] 
-        cursor = connection.cursor()
-        cursor.execute("select service_name,count(open_date) AS count from pagerstats_app_source_data where group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"' group by service_name order by 2 desc limit 5")
-        total_rows = cursor.fetchall()
-        li=[list(i) for i in total_rows]
-        for i in li: 
-            temp = {}
-            temp ['service_name'] = str(i[0])
-            temp ['count'] = int(i[1]) 
-            service_count_wk_pie.append(temp)
-        #print service_count_wk_pie
+            for i in (datetime.date.today() - datetime.timedelta(n) for n in range(interval)): 
+                fromdate = (i - datetime.timedelta(days=1))
+                #get_incidents(fromdate,i,'ICS')
 
-	return render(request, 'results.html', {'data_source_wk': data_source_wk,'data_source_dly':data_source_dly,'service_count_wk_pie':service_count_wk_pie}) 
+            #To fill 'no incident data'
+            todate = datetime.date.today() - datetime.timedelta(1)
+            fromdate = datetime.date.today() - datetime.timedelta(interval)
+            cursor = connection.cursor()
+            cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date\
+                            union \
+                            select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date order by 1")
+            total_rows = cursor.fetchall()
+            li=[list(i) for i in total_rows]
+            no_incident = []
+            for i in li: 
+                no_incident.append(i[0].strftime("%m-%d-%Y"))
+            
+            #print no_incident
+            for i in (datetime.date.today() - datetime.timedelta(n) for n in range(interval)): 
+                fromdate = (i - datetime.timedelta(days=1))
+                no_incident_date = str(fromdate.strftime("%m-%d-%Y"))
+                if no_incident_date not in no_incident:
+                    no_incident_date = format_date(fromdate)
+                    p=Source_data(source_date=no_incident_date,open_date=str(no_incident_date),close_date=no_incident_date,create_date=datetime.datetime.now(),group_date=no_incident_date)
+                    p.save()
 
+            #Weekly service data
+            data_source_wk = []
+            todate = datetime.date.today() - datetime.timedelta(1)
+            fromdate = datetime.date.today() - datetime.timedelta(interval)
+            cursor = connection.cursor()
+            cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) group by group_date\
+                            union \
+                            select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"')  group by group_date order by 1")
+            total_rows = cursor.fetchall()
+            li=[list(i) for i in total_rows]
+            for i in li: 
+                temp = {} 
+                temp['group_date'] = i[0].strftime("%m-%d-%Y")
+                temp['total'] = int(i[1]) 
+                temp['drill'] = int(i[0].strftime("%m%d%Y"))
+                data_source_wk.append(temp) 
+            
+
+            #Daily service data[for Drilldown line chart]
+            data_source_dly = [] 
+            cursor = connection.cursor()
+            cursor.execute("select group_date,service_name,count(open_date)count from pagerstats_app_source_data  where shift in ("+shift+") and domain in ("+ domain+" ) group by group_date,service_name  order by 1")
+            total_rows = cursor.fetchall()
+            li=[list(i) for i in total_rows]
+            for i in li: 
+                temp = {} 
+                temp['group_date'] = i[0].strftime("%m-%d-%Y")
+                temp['service_name'] = str(i[1])
+                temp['total'] = i[2]
+                temp['drill'] = int(i[0].strftime("%m%d%Y"))
+                data_source_dly.append(temp)
+            #print data_source_dly
+
+
+            #pie chart data
+            service_count_wk_pie = [] 
+            cursor = connection.cursor()
+            cursor.execute("select service_name,count(open_date) AS count from pagerstats_app_source_data where group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"' and shift in ("+shift+") and domain in ("+ domain+" )group by service_name order by 2 desc limit 5")
+            print_sql = "select service_name,count(open_date) AS count from pagerstats_app_source_data where group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"' and shift in ("+shift+") and domain in ("+ domain+" )group by service_name order by 2 desc limit 5"
+            #print print_sql
+            total_rows = cursor.fetchall()
+            li=[list(i) for i in total_rows]
+            for i in li: 
+                temp = {}
+                temp ['service_name'] = str(i[0])
+                temp ['count'] = int(i[1]) 
+                service_count_wk_pie.append(temp)
+            #print service_count_wk_pie
+            return render(request, 'results.html', {'data_source_wk': data_source_wk,'data_source_dly':data_source_dly,'service_count_wk_pie':service_count_wk_pie,'form': form})
+        else:
+            print "Form is not valid"
+            return render(request,'search_form.html', {'form': form,'error':error})
+    else:
+        print "Errror sir"
+        error = False
+        form = PagerForm(request.GET)
+        return render(request,'search_form.html', {'form': form,'error':error})
 
 def format_date(date):
     return date.strftime("%Y-%m-%d")

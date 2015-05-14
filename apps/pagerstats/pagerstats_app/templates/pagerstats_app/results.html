@@ -15,6 +15,50 @@
            <h1  style = "float: left;margin-left:10px;"align=center""></i><font size="5" color=black>Pager Stats</font>
             </h1>
 </div>
+
+
+
+
+<div style="width:85%;border-radius:10px;height:50px;margin: 10px auto;border:1px solid black;">
+    <div>
+        <div style="display: inline-block;">
+            <form id="form" action="" method="get">
+                {% for i in form %}
+                    <tr>
+                        {% if i.auto_id == "id_idc"%}
+                            &nbsp;&nbsp;<td>{{ i.label_tag }}</td>&nbsp;&nbsp;&nbsp;
+                            <td>{{i}}</td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            {% endif%}
+                                {% if i.auto_id == "id_shift"%} &nbsp;&nbsp;&nbsp;
+                                <td>{{ i.label_tag }}</td>
+                                {% for radio in form.shift %}
+                                    <div style="display: inline-block;margin: 15px auto;margin-left: 10px">
+                                        {{ radio }}
+                                    </div>
+                                {% endfor %}
+                                {% endif%}
+                            &nbsp;
+                            {% if i.auto_id == "id_domain"%}
+                                <select name="domain" id="id_domain">
+                                    {% for x,y in form.fields.domain.choices %}
+                                    <option value="{{ x }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% endif %}
+
+                    </tr>  
+                {% endfor %}
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                <input id="submitbtn" type="submit" value="Submit">
+                {% csrf_token %}
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+
 <div style="width:85%;border-radius:6px;height:auto;margin: 10px auto;border:1px solid black;"> 
     
     <div>

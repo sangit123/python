@@ -50,4 +50,12 @@ select group_date,0 count from pagerstats_app_source_data where domain is null a
 
 select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date > '2015-05-02' and group_date < '2015-05-10') group by group_date
 union
-select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date > '2015-05-02' and group_date < '2015-05-10') group by group_date order by 1
+select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date > '2015-05-02' and group_date < '2015-05-10') group by group_date order by 1;
+
+
+
+
+====12/05
+select description,count(group_date)count from pagerstats_app_source_data group by description;
+
+select description,group_date,count(group_date)count from pagerstats_app_source_data where description='"[API Gateway] Apache Availabi' group by group_date,description order by 1;
