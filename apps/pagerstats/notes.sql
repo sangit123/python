@@ -25,6 +25,7 @@ http://jsfiddle.net/phpdeveloperrahul/FW64T/
 http://stackoverflow.com/questions/24457486/highcharts-xaxis-drilldown-dont-change-correctly
 
 http://jsfiddle.net/jugal/uhydP/ --- Pie percentage
+http://jsfiddle.net/gh/get/jquery/1.9.1/highslide-software/highcharts.com/tree/master/samples/highcharts/demo/spline-plot-bands/ -- spline
 
 
 
@@ -58,4 +59,54 @@ select group_date,0 count from pagerstats_app_source_data where domain is null a
 ====12/05
 select description,count(group_date)count from pagerstats_app_source_data group by description;
 
-select description,group_date,count(group_date)count from pagerstats_app_source_data where description='"[API Gateway] Apache Availabi' group by group_date,description order by 1;
+select description,group_date,count(group_date)count from pagerstats_app_source_data where description='"[API Gateway] Apache Availabi' and group_date >'2015-04-28' group by group_date,description order by 1;
+
+select description,group_date,count(group_date)count,service_name from pagerstats_app_source_data where group_date >='2015-04-27' group by group_date,description,service_name order by 3 desc limit 3;
+
+select service_name,count(open_date) AS count from pagerstats_app_source_data where group_date >= '2015-05-06' and group_date <= '2015-05-12' and shift in ('US','IDC') group by service_name order by 2 desc limit 5
+
+
+==13/05
+select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '2015-05-06' and group_date <= '2015-05-12') group by group_date
+union
+select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '2015-05-06' and group_date <= '2015-05-12') group by group_date order by 1
+
+
+
+select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '2015-05-06' and group_date <= '2015-05-12') and shift in ('IDC') and domain in ('ICS' ) group by group_date
+union 							
+select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '2015-05-06' and group_date <= '2015-05-12')  group by group_date order by 1
+
+
+
+
+"select service_name,count(open_Date) from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) group by group_date"
+
+
+
+
+
+select service_name,description,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-04-29' and group_date <= '2015-05-13') and shift in ('IDC') and domain in ('ICS' ))*100)avg,(count(open_Date)/15)noise_ratio from pagerstats_app_source_data where (group_date >= '2015-04-29' and group_date <= '2015-05-13') and shift in ('IDC') and domain in ('ICS' ) group by service_name,description order by 3 desc limit 5;
+
+select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-04-29' and group_date <= '2015-05-13') and shift in ('IDC') and domain in ('ICS' );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

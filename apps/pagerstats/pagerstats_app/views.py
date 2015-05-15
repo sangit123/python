@@ -42,12 +42,12 @@ def getData(request):
             elif getDomain == 'pcs':
                 domain = "'PCS'"
             elif getDomain == 'mobile':
-                domain = "'MOBILE'"
+                domain = "'MOBILE'" 
 
 
-            for i in (datetime.date.today() - datetime.timedelta(n) for n in range(interval)): 
+            for i in (datetime.date.today() - datetime.timedelta(n-1)  for n in range(interval)): 
                 fromdate = (i - datetime.timedelta(days=1))
-                #get_incidents(fromdate,i,'ICS')
+                #get_incidents(fromdate,i,domain)
 
             #To fill 'no incident data'
             todate = datetime.date.today() - datetime.timedelta(1)
@@ -70,6 +70,7 @@ def getData(request):
                     no_incident_date = format_date(fromdate)
                     p=Source_data(source_date=no_incident_date,open_date=str(no_incident_date),close_date=no_incident_date,create_date=datetime.datetime.now(),group_date=no_incident_date)
                     p.save()
+            cursor.close()
 
             #Weekly service data
             data_source_wk = []
@@ -86,7 +87,8 @@ def getData(request):
                 temp['group_date'] = i[0].strftime("%m-%d-%Y")
                 temp['total'] = int(i[1]) 
                 temp['drill'] = int(i[0].strftime("%m%d%Y"))
-                data_source_wk.append(temp) 
+                data_source_wk.append(temp)
+            cursor.close() 
             
 
             #Daily service data[for Drilldown line chart]
@@ -102,6 +104,7 @@ def getData(request):
                 temp['total'] = i[2]
                 temp['drill'] = int(i[0].strftime("%m%d%Y"))
                 data_source_dly.append(temp)
+            cursor.close()
             #print data_source_dly
 
 
@@ -109,7 +112,7 @@ def getData(request):
             service_count_wk_pie = [] 
             cursor = connection.cursor()
             cursor.execute("select service_name,count(open_date) AS count from pagerstats_app_source_data where group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"' and shift in ("+shift+") and domain in ("+ domain+" )group by service_name order by 2 desc limit 5")
-            print_sql = "select service_name,count(open_date) AS count from pagerstats_app_source_data where group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"' and shift in ("+shift+") and domain in ("+ domain+" )group by service_name order by 2 desc limit 5"
+            #print_sql = "select service_name,count(open_date) AS count from pagerstats_app_source_data where group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"' and shift in ("+shift+") and domain in ("+ domain+" )group by service_name order by 2 desc limit 5"
             #print print_sql
             total_rows = cursor.fetchall()
             li=[list(i) for i in total_rows]
@@ -119,9 +122,46 @@ def getData(request):
                 temp ['count'] = int(i[1]) 
                 service_count_wk_pie.append(temp)
             #print service_count_wk_pie
-            return render(request, 'results.html', {'data_source_wk': data_source_wk,'data_source_dly':data_source_dly,'service_count_wk_pie':service_count_wk_pie,'form': form})
-        else:
-            print "Form is not valid"
+
+            #insights
+            insights_data = []
+            cursor = connection.cursor()
+            insight_sql = "select service_name,description,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ))*100)avg,(count(open_Date)/+"+str(interval)+")noise_ratio from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) group by service_name,description order by 3 desc limit 5";
+            print insight_sql
+            cursor.execute(insight_sql)
+            total_rows = cursor.fetchall()
+            li=[list(i) for i in total_rows]
+            for i in li: 
+                temp = {}
+                temp ['service_name'] = str(i[0])
+                temp ['description'] = i[1]
+                temp ['count'] = int(i[2]) 
+                temp ['avg'] = int(i[3])
+                temp ['noise_ratio'] = i[4]
+                insights_data.append(temp)
+            cursor.close()
+            #print insights_data
+
+            #Shift Status
+            shift_data = []
+            cursor = connection.cursor()
+            insight_sql = "select shift,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"')  and domain in ("+ domain+" ))*100)avg,round((count(open_Date)/+"+str(interval)+"),2)noise_ratio from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and domain in ("+ domain+" ) group by shift order by shift";
+            #insight_sql = "select shift,count(open_Date)count,32 avg,(count(open_Date)/+"+str(interval)+")noise_ratio from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and domain in ("+ domain+" ) group by shift order by shift"
+            #print insight_sql
+            cursor.execute(insight_sql)
+            total_rows = cursor.fetchall()
+            li=[list(i) for i in total_rows]
+            for i in li:
+                temp = {}
+                temp ['shift'] = str(i[0])
+                temp ['count'] = i[1]
+                temp ['avg'] = int(i[2]) 
+                temp ['noise_ratio'] = i[3]
+                shift_data.append(temp)
+            #print shift_data
+            domain = domain.strip("''") 
+            return render(request, 'results.html', {'data_source_wk': data_source_wk,'data_source_dly':data_source_dly,'service_count_wk_pie':service_count_wk_pie,'form': form,'insights_data':insights_data,'shift_data':shift_data,'domain':domain})
+        else: 
             return render(request,'search_form.html', {'form': form,'error':error})
     else:
         print "Errror sir"
@@ -141,9 +181,20 @@ def get_incidents(fromdate,todate,domain):
     service_count = {}  
     fr = datetime.datetime.strptime('06:00:00','%H:%M:%S')
     to = datetime.datetime.strptime('18:00:00','%H:%M:%S')
-    if domain == 'ICS':
+    if domain == "'ICS'":
         API_ACCESS_KEY = API_ACCESS_KEY_ICS
         SUBDOMAIN = SUBDOMAIN_ICS
+    elif domain == "'PCS'":
+        API_ACCESS_KEY = API_ACCESS_KEY_PCS
+        SUBDOMAIN = SUBDOMAIN_PCS
+    elif domain == "'MOBILE'":
+        API_ACCESS_KEY = API_ACCESS_KEY_MOBILE
+        SUBDOMAIN = SUBDOMAIN_MOBILE
+    else:
+        API_ACCESS_KEY = None
+        SUBDOMAIN = None
+    domain = domain.strip("''") 
+
     headers = {
         'Authorization': 'Token token={0}'.format(API_ACCESS_KEY),
         'Content-type': 'application/json',

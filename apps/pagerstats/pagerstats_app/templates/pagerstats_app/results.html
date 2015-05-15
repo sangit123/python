@@ -7,12 +7,12 @@
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="{% static 'css/myapp.css' %}">
-<link href='http://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Maven+Pro' rel='stylesheet' type='text/css'>
 </head>
 
 
-<div style="padding:0px;margin:5px;height:50px;background-color:#F7D358;margin:0 auto; border-radius:05px;width:85%;border-radius:10px;margin: 10px auto;border:1px solid black;">
-           <h1  style = "float: left;margin-left:10px;"align=center""></i><font size="5" color=black>Pager Stats</font>
+<div style="padding:0px;margin:5px;height:50px;background-color:rgb(26, 188, 156);margin:0 auto; border-radius:05px;width:85%;border-radius:10px;margin: 10px auto;border:1px solid black;">
+           <h1  style = "float: left;margin-left:10px;"align=center""></i><font size="5" color=black>pagerStats</font>
             </h1>
 </div>
 
@@ -51,7 +51,7 @@
                             &nbsp;&nbsp;&nbsp;&nbsp;
                 <input id="submitbtn" type="submit" value="Submit">
                 {% csrf_token %}
-
+                <h1  style = "float: right;margin-left:520px;"align=center""></i><font size="3" color=black><b>IDC:</b>{{ shift_data.0.avg}}{{'%'}}{% if shift_data.0.avg > shift_data.1.avg%}<b style="color: red;">&#x25B2;</b> {%endif%}   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>US:</b>{{ shift_data.1.avg}}{{'%'}}</font>
             </form>
         </div>
 
@@ -62,11 +62,11 @@
 <div style="width:85%;border-radius:6px;height:auto;margin: 10px auto;border:1px solid black;"> 
     
     <div>
-        <div style="margin-left: 0px; width:45%;display: inline-block;" >
+        <div style="margin-left: 0px; width:60%;display: inline-block;" >
             <div id="line"></div>
         </div>
 
-        <div style="margin-left: 0px; width:40%;display: inline-block;"align="center" "vertical-align: middle;" >
+        <div style="margin-left: 0px; width:35%;display: inline-block;"align="center" "vertical-align: middle;" >
             <div id="pie"></div>
         </div>
     </div> 
@@ -76,10 +76,48 @@
 
 <div id="line"></div>
 <div id="pie"></div>
+            <div style="width:85%;border-radius:5px;height: auto;margin: 10px auto;">
+            <font size="4" >&#128276;</font><font size="2"> <b><font color=red>Noise Ratio:</font></b> <u><b>IDC@{{ shift_data.0.noise_ratio}}</u></b>   &nbsp;&nbsp;&nbsp;&nbsp;  <u><b>US@{{   shift_data.1.noise_ratio}}</font></u></b>
+            </div>
+                    <div style="width:85%;border-radius:5px;height: auto;margin: 10px auto;border:1px solid black;"> 
+                        <div>
+                                <table class="table table-hover table-condensed;border-radius:10px;">
+
+                                  <thead style="background-color:rgb(26, 188, 156);border-radius:10px;">   
+                                      <th><font color=white size="2">Service Name</font></th>  
+                                      <th><font color=white size="2">Alert Desc </font> </th>
+                                      <th><font color=white size="2">No. Alerts</font>  </th>
+                                      <th><font color=white size="2">Contribution</font>  </th>
+                                      <th><font color=white size="2">Noise Ratio</font>  </th>
+                                  </thead>
+
+
+                                  <tbody>
+                                    {% for i in insights_data %}
+                                      <tr> 
+                                             
+                                                    <td class><font size="2"</font>{{i.service_name}}</div> 
+                                                    <td class><font size="2"</font>{{i.description}}</div>
+                                                    <td class><font size="2"</font>{{i.count}}</div>
+                                                    <td class><font size="2"</font>{{i.avg}}{{'%'}}</div>
+                                                    <td class><font size="2"</font>{{i.noise_ratio}}{% if i.noise_ratio > 0.5 %}<b style="color: red;"> &uarr;</b> {%endif%}</div>
+                                    </tr>
+                                    {% endfor %}
+                                  </tbody>
+                                </table>
+
+                        </div>
+                    </div>
+                    <div style="width:85%;border-radius:5px;height: auto;margin: 10px auto;">
+                        <i><font size="2" color=red>&uarr; Possible candidates to fix</font></i>
+                    </div>
+                    
+
 <script>
     var data_source_wk = {{ data_source_wk|safe }}
     var service_count_wk_pie = {{ service_count_wk_pie|safe }}
     var data_source_dly = {{ data_source_dly|safe }}
+    var domain = {{ domain|safe }}
 </script>
 
 
@@ -94,7 +132,7 @@ $(function () {
             type: 'column'
         },
         title: {
-            text: 'Weekly Stats'
+            text: "{{domain}}: Weekly Stats"
         },
         subtitle: {
                     text: 'Click the columns to view detail stats'
@@ -175,7 +213,7 @@ $(function () {
             type: 'pie'
         },
         title: {
-            text: 'Service Stats'
+            text: '{{domain}}: Service Stats'
         },
         subtitle: {
                     text: 'Total nmber of incidents/service'
