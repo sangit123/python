@@ -126,8 +126,8 @@ def getData(request):
             #insights
             insights_data = []
             cursor = connection.cursor()
-            insight_sql = "select service_name,description,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ))*100)avg,(count(open_Date)/+"+str(interval)+")noise_ratio from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) group by service_name,description order by 3 desc limit 5";
-            print insight_sql
+            insight_sql = "select service_name,description,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ))*100)avg,round((count(open_Date)/+"+str(interval)+"),2)noise_ratio from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) group by service_name,description order by 3 desc limit 5";
+            #print insight_sql
             cursor.execute(insight_sql)
             total_rows = cursor.fetchall()
             li=[list(i) for i in total_rows]
@@ -158,9 +158,40 @@ def getData(request):
                 temp ['avg'] = int(i[2]) 
                 temp ['noise_ratio'] = i[3]
                 shift_data.append(temp)
-            #print shift_data
+            cursor.close()
+            
+            #Noise Pulse
+            noise_pulse = []
+            cursor = connection.cursor()
+            noise_pulse_sql = "select count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=7))+"' and group_date <= '"+str(todate)+"')  and domain in ("+ domain+" ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,'"+str(todate)+"' frequency from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=7))+"' and group_date <= '"+str(todate)+"') and domain in ("+ domain+" )and shift in ("+shift+") group by frequency \
+                          union \
+                          select count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=14))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=7))+"')  and domain in ("+ domain+" ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,'"+ str(todate  - datetime.timedelta(days=7))+"' frequency from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=14))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=7))+"') and domain in ("+ domain+" ) and shift in ("+shift+") group by frequency \
+                          union \
+                          select count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=21))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=14))+"')  and domain in ("+ domain+" ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,'"+ str(todate  - datetime.timedelta(days=14))+"' frequency from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=21))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=14))+"') and domain in ("+ domain+" ) and shift in ("+shift+") group by frequency \
+                          union \
+                          select count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=28))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=21))+"')  and domain in ("+ domain+" ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,'"+ str(todate  - datetime.timedelta(days=21))+"' frequency from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=28))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=21))+"') and domain in ("+ domain+" ) and shift in ("+shift+") group by frequency \
+                          union \
+                          select count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=35))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=28))+"')  and domain in ("+ domain+" ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,'"+ str(todate  - datetime.timedelta(days=28))+"' frequency from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=35))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=28))+"') and domain in ("+ domain+" ) and shift in ("+shift+") group by frequency \
+                          union \
+                          select count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=42))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=35))+"')  and domain in ("+ domain+" ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,'"+ str(todate  - datetime.timedelta(days=35))+"' frequency from pagerstats_app_source_data where (group_date >= '"+str(todate  - datetime.timedelta(days=42))+"' and group_date <= '"+str(todate  - datetime.timedelta(days=35))+"') and domain in ("+ domain+" ) and shift in ("+shift+") group by  frequency order by 4;"
+            cursor.execute(noise_pulse_sql)
+            total_rows = cursor.fetchall()
+            li=[list(i) for i in total_rows]
+            for i in li:
+                temp = {}
+                #temp ['shift'] = str(i[0])
+                temp ['count'] = i[0]
+                temp ['avg'] = int(i[1]) 
+                temp ['noise_ratio'] = i[2]
+                temp ['frequency'] = str(i[3])
+                #temp ['frequency'] = datetime.datetime.strptime(i[4],"%Y-%m-%d")
+                noise_pulse.append(temp)
+            cursor.close()
+            print noise_pulse_sql
+
+
             domain = domain.strip("''") 
-            return render(request, 'results.html', {'data_source_wk': data_source_wk,'data_source_dly':data_source_dly,'service_count_wk_pie':service_count_wk_pie,'form': form,'insights_data':insights_data,'shift_data':shift_data,'domain':domain})
+            return render(request, 'results.html', {'data_source_wk': data_source_wk,'data_source_dly':data_source_dly,'service_count_wk_pie':service_count_wk_pie,'form': form,'insights_data':insights_data,'shift_data':shift_data,'domain':domain,'noise_pulse':noise_pulse})
         else: 
             return render(request,'search_form.html', {'form': form,'error':error})
     else:

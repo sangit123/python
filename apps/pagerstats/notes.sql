@@ -90,6 +90,73 @@ select service_name,description,count(open_Date)count,round(count(open_Date)/(se
 
 select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-04-29' and group_date <= '2015-05-13') and shift in ('IDC') and domain in ('ICS' );
 
+select shift,count(open_Date)count,32 avg,round((count(open_Date)/15),1)noise_ratio from pagerstats_app_source_data where (group_date >= '2015-04-29' and group_date <= '2015-05-13')  and domain in ('ICS' ) group by shift;
+
+
+
+
+
+insight_sql = "select shift,count(open_Date)count,32 avg,(count(open_Date)/+"+str(interval)+")noise_ratio from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and domain in ("+ domain+" ) group by shift order by shift";
+
+
+select shift,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-05-07' and group_date <= '2015-05-14')  and domain in ('ICS' ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,"2wks" frequency from pagerstats_app_source_data where (group_date >= '2015-04-30' and group_date <= '2015-05-14') and domain in ('ICS' ) group by shift
+union
+select shift,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-04-30' and group_date <= '2015-05-07')  and domain in ('ICS' ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,"4wks" frequency from pagerstats_app_source_data where (group_date >= '2015-04-15' and group_date <= '2015-05-14') and domain in ('ICS' ) group by shift
+union
+select shift,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-04-01' and group_date <= '2015-05-14')  and domain in ('ICS' ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,"6wks" frequency from pagerstats_app_source_data where (group_date >= '2015-04-01' and group_date <= '2015-05-14') and domain in ('ICS' ) group by shift
+
+
+===
+
+select shift,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-05-07' and group_date <= '2015-05-14')  and domain in ('ICS' ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,'2wks' frequency from pagerstats_app_source_data where (group_date >= '2015-04-30' and group_date <= '2015-05-14') and domain in ('ICS' ) group by shift
+union 
+select shift,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-04-30' and group_date <= '2015-05-07')  and domain in ('ICS' ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,4wks frequency from pagerstats_app_source_data where (group_date >= '2015-04-15' and group_date <= '2015-05-14') and domain in ('ICS' ) group by shift
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

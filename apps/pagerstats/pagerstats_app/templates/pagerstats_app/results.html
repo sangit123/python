@@ -51,7 +51,7 @@
                             &nbsp;&nbsp;&nbsp;&nbsp;
                 <input id="submitbtn" type="submit" value="Submit">
                 {% csrf_token %}
-                <h1  style = "float: right;margin-left:520px;"align=center""></i><font size="3" color=black><b>IDC:</b>{{ shift_data.0.avg}}{{'%'}}{% if shift_data.0.avg > shift_data.1.avg%}<b style="color: red;">&#x25B2;</b> {%endif%}   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>US:</b>{{ shift_data.1.avg}}{{'%'}}</font>
+                <h1  style = "float: right;margin-left:520px;"align=center""></i><font size="3" color=black><b>IDC:</b>{{ shift_data.0.avg}}{{'%'}}{% if shift_data.0.avg > shift_data.1.avg%}<b style="color: red;">&#x25B2;</b> {%endif%}   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>US:</b>{{ shift_data.1.avg}}{{'%'}}{% if shift_data.1.avg > shift_data.0.avg%}<b style="color: red;">&#x25B2;</b> {%endif%}</font>
             </form>
         </div>
 
@@ -63,7 +63,7 @@
     
     <div>
         <div style="margin-left: 0px; width:60%;display: inline-block;" >
-            <div id="line"></div>
+            <div id="main"></div>
         </div>
 
         <div style="margin-left: 0px; width:35%;display: inline-block;"align="center" "vertical-align: middle;" >
@@ -76,11 +76,14 @@
 
 <div id="line"></div>
 <div id="pie"></div>
-            <div style="width:85%;border-radius:5px;height: auto;margin: 10px auto;">
+       
+
+        <div style="width:85%;border-radius:5px;height: auto;margin: 10px auto;">
             <font size="4" >&#128276;</font><font size="2"> <b><font color=red>Noise Ratio:</font></b> <u><b>IDC@{{ shift_data.0.noise_ratio}}</u></b>   &nbsp;&nbsp;&nbsp;&nbsp;  <u><b>US@{{   shift_data.1.noise_ratio}}</font></u></b>
-            </div>
-                    <div style="width:85%;border-radius:5px;height: auto;margin: 10px auto;border:1px solid black;"> 
-                        <div>
+            
+            
+            <div>
+                    <div style="width:65%;border-radius:5px;height: auto;margin: 10px auto;border:1px solid black;display: inline-block;">  
                                 <table class="table table-hover table-condensed;border-radius:10px;">
 
                                   <thead style="background-color:rgb(26, 188, 156);border-radius:10px;">   
@@ -104,11 +107,17 @@
                                     </tr>
                                     {% endfor %}
                                   </tbody>
-                                </table>
-
-                        </div>
+                                </table> 
                     </div>
-                    <div style="width:85%;border-radius:5px;height: auto;margin: 10px auto;">
+            
+
+                    <div style="margin-left: 0px; width:30%;height: auto;display: inline-block;" >  
+                                <div id="noise"></div>
+                    </div>
+            </div>
+        </div>
+
+                    <div style="width:45%;margin-left: 0px;border-radius:5px;height: 0px;margin: 0px auto;">
                         <i><font size="2" color=red>&uarr; Possible candidates to fix</font></i>
                     </div>
                     
@@ -118,6 +127,52 @@
     var service_count_wk_pie = {{ service_count_wk_pie|safe }}
     var data_source_dly = {{ data_source_dly|safe }}
     var domain = {{ domain|safe }}
+    var noise_pulse = {{ noise_pulse|safe }}
+
+    
+</script>
+
+
+<script type="text/javascript">
+
+
+$(function () {
+    $('#noise').highcharts({
+        chart: {
+            type: 'spline',
+            height: 280,
+        },
+        title: {
+            text: 'Noise Pulse'
+        },
+        subtitle: {
+            text: 'Last 6 weeks Trend'
+        },
+        xAxis: {
+            type: 'category'
+        },
+        
+         
+        tooltip: {
+            valueSuffix: ''
+        },
+         
+        series: [{
+            name: 'Noise Pulse',
+            data: [ {% for i in noise_pulse %}
+                  { 
+                    name: '{{i.frequency}}',
+                    y:  {{ i.noise_ratio }} 
+                  },
+                {% endfor %}
+               ]
+
+        }]
+    });
+});
+
+
+
 </script>
 
 
@@ -127,9 +182,9 @@
 $(function () {    
 
     // Create the chart
-    $('#line').highcharts({
+    $('#main').highcharts({
         chart: {
-            type: 'column'
+            type: 'column', 
         },
         title: {
             text: "{{domain}}: Weekly Stats"
@@ -201,7 +256,6 @@ $(function () {
 
 </script>
 
-
 <script type="text/javascript">
 
 
@@ -214,6 +268,71 @@ $(function () {
         },
         title: {
             text: '{{domain}}: Service Stats'
+        },
+        subtitle: {
+                    text: 'Total nmber of incidents/service'
+                },
+        xAxis: {
+            type: 'category'
+        },
+        yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Total Incidents'
+                    }
+                },
+        legend: {
+            enabled: true
+        },
+
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                    formatter: function() {
+                        return Math.round(this.percentage*100)/100 + ' %';
+                    },
+                    distance: -30,
+                    color:'white'
+                }
+            }
+        },
+        series: [{
+        name: 'Incidents/Service',
+        colorByPoint: true,
+        data: [ {% for i in service_count_wk_pie %}
+                  { 
+                    name: '{{i.service_name}}',
+                    y:  {{ i.count }} 
+                  },
+                {% endfor %}
+               ]
+    }]
+
+    })
+});
+
+
+
+
+</script>
+
+
+
+
+<script type="text/javascript">
+
+
+$(function () {    
+
+    // Create the chart
+    $('#line2').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Service Stats'
         },
         subtitle: {
                     text: 'Total nmber of incidents/service'
