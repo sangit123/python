@@ -43,6 +43,11 @@ def getData(request):
                 domain = "'PCS'"
             elif getDomain == 'mobile':
                 domain = "'MOBILE'" 
+            elif getDomain == 'fds':
+                domain = "'FDS'"
+            else:
+                domain = "'ICS'"
+
 
 
             for i in (datetime.date.today() - datetime.timedelta(n-1)  for n in range(interval)): 
@@ -221,6 +226,9 @@ def get_incidents(fromdate,todate,domain):
     elif domain == "'MOBILE'":
         API_ACCESS_KEY = API_ACCESS_KEY_MOBILE
         SUBDOMAIN = SUBDOMAIN_MOBILE
+    elif domain == "'FDS'":
+        API_ACCESS_KEY = API_ACCESS_KEY_FDS
+        SUBDOMAIN = SUBDOMAIN_FDS
     else:
         API_ACCESS_KEY = None
         SUBDOMAIN = None
@@ -274,12 +282,18 @@ def get_incidents(fromdate,todate,domain):
             escalations = key['number_of_escalations']
             
             
-        except KeyError:
-            description = key['trigger_summary_data']['subject'][0:30]
-            pass
+        except KeyError:    
+            try:
+                description = key['trigger_summary_data']['subject'][0:30]
+            except:
+                pass
         except TypeError:
             resolved_by = None
             pass
+        
+        
+
+
     
         #print str(key['created_on'])+"    "+str(psttime_open)+"    "+shift+"    "+service_name+"    "+description
         p=Source_data(source_date=utc,open_date=str(psttime_open),close_date=psttime_close,service_name=service_name,shift=shift,description=description,resolved_by=resolved_by,escalations=escalations,create_date=datetime.datetime.now(),group_date=group_date,domain=domain)
