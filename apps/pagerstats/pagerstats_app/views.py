@@ -192,11 +192,34 @@ def getData(request):
                 #temp ['frequency'] = datetime.datetime.strptime(i[4],"%Y-%m-%d")
                 noise_pulse.append(temp)
             cursor.close()
-            print noise_pulse_sql
+            #print noise_pulse_sql
+
+            alert_summary = []
+            #alert_desc_dd = []
+            cursor = connection.cursor()
+            alert_summary_sql = "select open_date,substr(dayname(open_date),1,3)day,service_name,shift,description,resolved_by,domain from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) order by 1 desc;"
+            print alert_summary_sql
+            cursor.execute(alert_summary_sql)
+            total_rows = cursor.fetchall()
+            li=[list(i) for i in total_rows]
+            for i in li:
+                temp = {}
+                temp ['open_date'] = i[0]
+                temp ['day'] = i[1]
+                temp ['service_name'] = i[2]
+                temp ['shift'] = i[3]
+                temp ['description'] = i[4]
+                temp ['resolved_by'] = i[5]
+                temp ['domain'] = i[6]
+                alert_summary.append(temp)
+            cursor.close()
+            #print alert_desc_dd_sql
+            #alert_desc_sql="select open_date,service_name,description,shift,resolved_by from pagerstats_app_source_data where group_date= '2015-05-14' and domain='ICS' and shift='IDC' order by 1;"
+
 
 
             domain = domain.strip("''") 
-            return render(request, 'results.html', {'data_source_wk': data_source_wk,'data_source_dly':data_source_dly,'service_count_wk_pie':service_count_wk_pie,'form': form,'insights_data':insights_data,'shift_data':shift_data,'domain':domain,'noise_pulse':noise_pulse})
+            return render(request, 'results.html', {'data_source_wk': data_source_wk,'data_source_dly':data_source_dly,'service_count_wk_pie':service_count_wk_pie,'form': form,'insights_data':insights_data,'shift_data':shift_data,'domain':domain,'noise_pulse':noise_pulse,'alert_summary':alert_summary})
         else: 
             return render(request,'search_form.html', {'form': form,'error':error})
     else:
@@ -254,6 +277,7 @@ def get_incidents(fromdate,todate,domain):
     resolved_by = None
     escalations = None
     group_date = None
+    description = None
     for key in output_json['incidents']:
         utctime = str(key['created_on'])
         utc = datetime.datetime.strptime(utctime, fmt)
@@ -276,15 +300,15 @@ def get_incidents(fromdate,todate,domain):
                 shift = 'IDC'
                 
             service_name = key['service']['name'] 
-            description = key['trigger_summary_data']['description'][0:30]
             resolved_by = key['resolved_by_user']['name']
             closed_on = key['last_status_change_on']
             escalations = key['number_of_escalations']
+            description = key['trigger_summary_data']['description'][0:40]
             
             
         except KeyError:    
             try:
-                description = key['trigger_summary_data']['subject'][0:30]
+                description = key['trigger_summary_data']['subject'][0:40]
             except:
                 pass
         except TypeError:

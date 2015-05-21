@@ -1,6 +1,7 @@
 {% load staticfiles %}
 
 <head>
+
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script> 
 <script src="http://code.highcharts.com/highcharts.js"></script>
 <script src="http://code.highcharts.com/modules/drilldown.js"></script>
@@ -8,6 +9,9 @@
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="{% static 'css/myapp.css' %}">
 <link href='http://fonts.googleapis.com/css?family=Maven+Pro' rel='stylesheet' type='text/css'>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="/resources/demos/style.css">
+
 </head>
 
 
@@ -52,12 +56,26 @@
                 <input id="submitbtn" type="submit" value="Submit">
                 {% csrf_token %}
                 <h1  style = "float: right;margin-left:520px;"align=center""></i><font size="3" color=black><b>IDC:</b>{{ shift_data.0.avg}}{{'%'}}{% if shift_data.0.avg > shift_data.1.avg%}<b style="color: red;">&#x25B2;</b> {%endif%}   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>US:</b>{{ shift_data.1.avg}}{{'%'}}{% if shift_data.1.avg > shift_data.0.avg%}<b style="color: red;">&#x25B2;</b> {%endif%}</font>
+
+
+                    <script src="{% static "js/spin.min.js" %}" type="text/javascript"></script>
+                    <script src="{% static "js/loadgif.js" %}" type="text/javascript"></script>
+
             </form>
         </div>
 
     </div>
 </div>
 
+<body>
+
+<div id="loading">
+        <div id="loadingcontent">
+            <p id="loadingspinner"><br><br>
+                Please wait.. Collecting data from PagerDuty
+            </p>
+        </div>
+    </div>
 
 <div style="width:85%;border-radius:6px;height:auto;margin: 10px auto;border:1px solid black;"> 
     
@@ -67,23 +85,22 @@
         </div>
 
         <div style="margin-left: 0px; width:35%;display: inline-block;"align="center" "vertical-align: middle;" >
-            <div id="pie"></div>
+           <div id="pie"></div>
         </div>
     </div> 
 
 </div>
 
-
 <div id="line"></div>
 <div id="pie"></div>
-       
 
         <div style="width:85%;border-radius:5px;height: auto;margin: 10px auto;">
-            <font size="4" >&#128276;</font><font size="2"> <b><font color=red>Noise Ratio:</font></b> <u><b>IDC@{{ shift_data.0.noise_ratio}}</u></b>   &nbsp;&nbsp;&nbsp;&nbsp;  <u><b>US@{{   shift_data.1.noise_ratio}}</font></u></b>
+            <font size="4" >&#128276;</font><font size="2"> <b><font color=red>Avg.Page/Day:</font></b> <u><b>IDC@{{ shift_data.0.noise_ratio}}</u></b>   &nbsp;&nbsp;&nbsp;&nbsp;  <u><b>US@{{   shift_data.1.noise_ratio}}</font></u></b>
             
             
             <div>
-                    <div style="width:65%;border-radius:5px;height: auto;margin: 10px auto;border:1px solid black;display: inline-block;">  
+
+                    <div style="width:69%;border-radius:5px;height: auto;margin: 10px auto;border:1px solid black;display: inline-block;">  
                                 <table class="table table-hover table-condensed;border-radius:10px;">
 
                                   <thead style="background-color:rgb(26, 188, 156);border-radius:10px;">   
@@ -116,11 +133,94 @@
                     </div>
             </div>
         </div>
+ 
+<br>
 
-                    <div style="width:45%;margin-left: 0px;border-radius:5px;height: 0px;margin: 0px auto;">
-                        <i><font size="2" color=red>&uarr; Possible candidates to fix</font></i>
-                    </div>
-                    
+
+
+<div id="accordion" >
+    <div style="padding:0px;margin:5px;height:50px;background-color:rgb(26, 188, 156);margin:0 auto; border-radius:05px;width:85%;border-radius:10px;margin: 10px auto;border:1px solid black;">
+           <h1  style = "float: left;margin-left:10px;"align=center""></i><font size="5" color=black>&nbsp;alert summary</font>
+            </h1>
+    
+    </div>
+    <div style="width:85%;margin:0 auto;">
+                <input type="text"  id="search1" placeholder="Type to filter records" class= "form-control" font-size: 10pt; >  
+                                <table class="table table-hover table-condensed;border-radius:10px;">
+
+                                  <thead style="background-color:rgb(26, 188, 156);">    
+                                      <th><font color=white size="2">Date[PT] </font> </th>
+                                      <th><font color=white size="2">Day </font> </th>
+                                      <th><font color=white size="2">Service Name</font></th> 
+                                      <th><font color=white size="2">Description</font>  </th>
+                                      <th><font color=white size="2">Shift</font>  </th>
+                                      <th><font color=white size="2">Resolved By</font>  </th>
+                                      <th><font color=white size="2">Domain</font>  </th>
+                                  </thead>
+
+
+                                  <tbody>
+                                    {% for i in alert_summary %}
+                                      <tr  class="status" value="alert"> 
+                                             
+                                                    <td class><font size="1"</font>{{i.open_date}}</div>
+                                                    <td class><font size="1"</font>{{i.day}}</div>
+                                                    <td class><font size="1"</font>{{i.service_name}}</div> 
+                                                    <td class><font size="1"</font>{{i.description}}</div>
+                                                    <td class><font size="1"</font>{{i.shift}}</div>
+                                                    <td class><font size="1"</font>{{i.resolved_by}}</div>
+                                                    <td class><font size="1"</font>{{i.domain}}</div>
+                                    </tr>
+                                    {% endfor %}
+                                  </tbody>
+                                </table> 
+             
+    </div>
+</div>
+
+
+</body>
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="/resources/demos/style.css">
+
+<script>
+  $(function() {
+    $( "#accordion" ).accordion({ active: false },{ collapsible: true }, {heightStyle: "content" });
+
+  });
+  </script>
+
+
+<script type="text/javascript">
+
+
+
+
+function show() {
+    document.getElementById("myDiv").style.display="block";
+    setTimeout("hide()", 5000);  // 5 seconds
+}
+
+function hide() {
+    document.getElementById("myDiv").style.display="none";
+}
+
+
+        
+  var $rows = $('tr.status[value=alert]');
+  $('#search1').keyup(function() {
+  var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+    
+  $rows.show().filter(function() {
+        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+        return !~text.indexOf(val);
+    }).hide();
+  });
+</script>
+
+
 
 <script>
     var data_source_wk = {{ data_source_wk|safe }}
@@ -143,7 +243,7 @@ $(function () {
             height: 280,
         },
         title: {
-            text: 'Noise Pulse'
+            text: 'Pulse: Avg Page/day'
         },
         subtitle: {
             text: 'Last 6 weeks Trend'
@@ -158,7 +258,7 @@ $(function () {
         },
          
         series: [{
-            name: 'Noise Pulse',
+            name: 'Page Pulse',
             data: [ {% for i in noise_pulse %}
                   { 
                     name: '{{i.frequency}}',
@@ -187,7 +287,7 @@ $(function () {
             type: 'column', 
         },
         title: {
-            text: "{{domain}}: Weekly Stats"
+            text: "{{domain}}: Bi-Weekly Stats"
         },
         subtitle: {
                     text: 'Click the columns to view detail stats'
@@ -270,7 +370,7 @@ $(function () {
             text: '{{domain}}: Service Stats'
         },
         subtitle: {
-                    text: 'Total nmber of incidents/service'
+                    text: 'Total number of incidents/service'
                 },
         xAxis: {
             type: 'category'
@@ -382,4 +482,6 @@ $(function () {
 
 
 </script>
+
+
 
