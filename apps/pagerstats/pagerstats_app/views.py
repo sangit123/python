@@ -48,11 +48,20 @@ def getData(request):
             else:
                 domain = "'ICS'"
 
+            #To check whether data already present in DB 
+            interval_api = None
+            total_rows = []
+            v_count_sql = "select DATEDIFF(CURDATE(),DATE_SUB(max(group_date),INTERVAL 2 DAY))interval_days from pagerstats_app_source_data;"
+            cursor = connection.cursor()
+            cursor.execute(v_count_sql)
+            total_rows = cursor.fetchall()
+            interval_api = total_rows[0][0]
+            if interval_api == 0 or interval_api is None:
+                interval_api = 15
 
-
-            for i in (datetime.date.today() - datetime.timedelta(n-1)  for n in range(interval)): 
+            for i in (datetime.date.today() - datetime.timedelta(n-1)  for n in range(interval_api)): 
                 fromdate = (i - datetime.timedelta(days=1))
-                #get_incidents(fromdate,i,domain)
+                get_incidents(fromdate,i,domain)
 
             #To fill 'no incident data'
             todate = datetime.date.today() - datetime.timedelta(1)
@@ -84,7 +93,13 @@ def getData(request):
             cursor = connection.cursor()
             cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) group by group_date\
                             union \
-                            select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"')  group by group_date order by 1")
+                            select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" )  group by group_date order by 1")
+            
+
+            incident_sql = "select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) group by group_date\
+                            union \
+                            select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"')  group by group_date order by 1;"
+            #print incident_sql
             total_rows = cursor.fetchall()
             li=[list(i) for i in total_rows]
             for i in li: 
@@ -198,7 +213,7 @@ def getData(request):
             #alert_desc_dd = []
             cursor = connection.cursor()
             alert_summary_sql = "select open_date,substr(dayname(open_date),1,3)day,service_name,shift,description,resolved_by,domain from pagerstats_app_source_data where (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) order by 1 desc;"
-            print alert_summary_sql
+            #print alert_summary_sql
             cursor.execute(alert_summary_sql)
             total_rows = cursor.fetchall()
             li=[list(i) for i in total_rows]

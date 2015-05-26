@@ -113,18 +113,23 @@ union
 select shift,count(open_Date)count,round(count(open_Date)/(select count(open_date)tt from pagerstats_app_source_data where (group_date >= '2015-04-30' and group_date <= '2015-05-07')  and domain in ('ICS' ))*100)avg,round((count(open_Date)/+15),2)noise_ratio,4wks frequency from pagerstats_app_source_data where (group_date >= '2015-04-15' and group_date <= '2015-05-14') and domain in ('ICS' ) group by shift
 
 
+==20/05
+select open_date,substr(dayname(open_date),1,3)day,service_name,shift,description,resolved_by,domain from pagerstats_app_source_data where (group_date >= '2015-05-05' and group_date <= '2015-05-19') and shift in ('IDC') and domain in ('ICS') order by 1;
+
+
+select open_date,substr(dayname(open_date),1,3)day,service_name,shift,description,resolved_by,domain,escalations from pagerstats_app_source_data where (group_date >= '2015-05-05' and group_date <= '2015-05-19') and shift in ('IDC') and domain in ('ICS' ) order by 1;
+
+
+==
+select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '2015-05-06' and group_date <= '2015-05-20') and shift in ('US') and domain in ('ICS' ) group by group_date
+union 
+select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '2015-05-06' and group_date <= '2015-05-20')  group by group_date order by 1;
 
 
 
+====Get the interval
 
-
-
-
-
-
-
-
-
+select max(group_date),DATE_SUB(max(group_date),INTERVAL 1 DAY)grp_date,CURDATE(),DATEDIFF(CURDATE(),DATE_SUB(max(group_date),INTERVAL 2 DAY))inter from pagerstats_app_source_data;
 
 
 
