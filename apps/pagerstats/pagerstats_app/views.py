@@ -51,7 +51,7 @@ def getData(request):
             #To check whether data already present in DB 
             interval_api = None
             total_rows = []
-            v_count_sql = "select DATEDIFF(CURDATE(),DATE_SUB(max(group_date),INTERVAL 2 DAY))interval_days from pagerstats_app_source_data;"
+            v_count_sql = "select DATEDIFF(CURDATE(),DATE_SUB(max(group_date),INTERVAL 2 DAY))interval_days from pagerstats_app_source_data where domain in ("+ domain+" ) ;"
             cursor = connection.cursor()
             cursor.execute(v_count_sql)
             total_rows = cursor.fetchall()
@@ -64,12 +64,13 @@ def getData(request):
                 get_incidents(fromdate,i,domain)
 
             #To fill 'no incident data'
-            todate = datetime.date.today() - datetime.timedelta(1)
+            todate = datetime.date.today() - datetime.timedelta(0)
             fromdate = datetime.date.today() - datetime.timedelta(interval)
             cursor = connection.cursor()
             cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date\
                             union \
                             select group_date,0 count from pagerstats_app_source_data where domain is null and service_name is null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') group by group_date order by 1")
+                
             total_rows = cursor.fetchall()
             li=[list(i) for i in total_rows]
             no_incident = []
@@ -77,7 +78,7 @@ def getData(request):
                 no_incident.append(i[0].strftime("%m-%d-%Y"))
             
             #print no_incident
-            for i in (datetime.date.today() - datetime.timedelta(n) for n in range(interval)): 
+            for i in (datetime.date.today() - datetime.timedelta(n-1) for n in range(interval)): 
                 fromdate = (i - datetime.timedelta(days=1))
                 no_incident_date = str(fromdate.strftime("%m-%d-%Y"))
                 if no_incident_date not in no_incident:
@@ -88,7 +89,7 @@ def getData(request):
 
             #Weekly service data
             data_source_wk = []
-            todate = datetime.date.today() - datetime.timedelta(1)
+            todate = datetime.date.today() - datetime.timedelta(0)
             fromdate = datetime.date.today() - datetime.timedelta(interval)
             cursor = connection.cursor()
             cursor.execute("select group_date,count(open_date)count from pagerstats_app_source_data where domain is not null and service_name is not null and (group_date >= '"+str(fromdate)+"' and group_date <= '"+str(todate)+"') and shift in ("+shift+") and domain in ("+ domain+" ) group by group_date\

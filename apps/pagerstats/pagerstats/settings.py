@@ -57,7 +57,8 @@ ROOT_URLCONF = 'pagerstats.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['/Users/shaveri/python/apps/pagerstats/pagerstats_app/templates/pagerstats_app'],
+        #'DIRS': ['/Users/shaveri/python/apps/pagerstats/pagerstats_app/templates/pagerstats_app'],
+        'DIRS': ['/root/python_proj/apps/pagerstats/pagerstats_app/templates/pagerstats_app'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,7 +82,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'pagerstats',
         'USER': 'root',
-        'PASSWORD': 'root123',
+        #'PASSWORD': 'root123',
+        'PASSWORD': 'Intuit01',
     }
 }
 

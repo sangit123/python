@@ -129,7 +129,7 @@ select group_date,0 count from pagerstats_app_source_data where domain is null a
 
 ====Get the interval
 
-select max(group_date),DATE_SUB(max(group_date),INTERVAL 1 DAY)grp_date,CURDATE(),DATEDIFF(CURDATE(),DATE_SUB(max(group_date),INTERVAL 2 DAY))inter from pagerstats_app_source_data;
+v_count_sql = "select DATEDIFF(CURDATE(),DATE_SUB(max(group_date),INTERVAL 2 DAY))interval_days from pagerstats_app_source_data where domain in ("+ domain+" ) ;"
 
 
 
