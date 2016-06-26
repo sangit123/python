@@ -15,6 +15,8 @@ import csv
 from django.http import HttpResponseRedirect
 from django.db import connection
 from pagerstats_app.forms import PagerForm
+from datetime import datetime
+import datetime
 
 
 def getData(request):
@@ -47,6 +49,17 @@ def getData(request):
                 domain = "'FDS'"
             else:
                 domain = "'ICS'"
+
+
+
+
+            #out = open('/root/python_proj/apps/pagerstats/pagerstats_app/logs.csv', 'a') 
+            out = open('/Users/shaveri/python/apps/pagerstats/pagerstats_app/logs.csv', 'a') 
+            out.write(domain+","+str(datetime.datetime.now()))
+            out.write('\n')
+            out.close
+
+
 
             #To check whether data already present in DB 
             interval_api = None
